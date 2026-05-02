@@ -16,22 +16,22 @@
     node
     (recur right)))
 
-(defn- node-add [{:keys [value left right] :as node} cur-value to-left?]
+(defn- insert-node [{:keys [value left right] :as node} cur-value to-left?]
   (if (to-left? cur-value value)
-    (if (nil? left)  (assoc node :left  (make-node cur-value)) (assoc node :left  (node-add left  cur-value to-left?)))
-    (if (nil? right) (assoc node :right (make-node cur-value)) (assoc node :right (node-add right cur-value to-left?)))))
+    (if (nil? left)  (assoc node :left  (make-node cur-value)) (assoc node :left  (insert-node left  cur-value to-left?)))
+    (if (nil? right) (assoc node :right (make-node cur-value)) (assoc node :right (insert-node right cur-value to-left?)))))
 
-(defn- node-member? [{:keys [value left right] :as node} search-value to-left?]
+(defn- member-node? [{:keys [value left right] :as node} search-value to-left?]
   (cond
     (nil? node)                     false
     (= value search-value)          true
-    (to-left? search-value value)   (if left  (node-member? left  search-value to-left?) false)
-    :else                           (if right (node-member? right search-value to-left?) false)))
+    (to-left? search-value value)   (if left  (member-node? left  search-value to-left?) false)
+    :else                           (if right (member-node? right search-value to-left?) false)))
 
-(defn- node-delete [{:keys [value left right] :as node} delete-value to-left?]
+(defn- remove-node [{:keys [value left right] :as node} to-remove-val to-left?]
   (cond
-    (to-left? delete-value value) (update node :left  node-delete delete-value to-left?)
-    (to-left? value delete-value) (update node :right node-delete delete-value to-left?)
+    (to-left? to-remove-val value) (update node :left  remove-node to-remove-val to-left?)
+    (to-left? value to-remove-val) (update node :right remove-node to-remove-val to-left?)
     :else (cond
             (nil? left)  right
             (nil? right) left
@@ -39,15 +39,15 @@
             (let [successor (min-node right)]
               (-> node
                   (assoc  :value (:value successor))
-                  (update :right node-delete (:value successor) to-left?))))))
+                  (update :right remove-node (:value successor) to-left?))))))
 
-(defn- node-to-seq [{:keys [value left right] :as node}]
+(defn- nodes->list [{:keys [value left right] :as node}]
   (when node
-    (concat (node-to-seq left)
+    (concat (nodes->list left)
             [value]
-            (node-to-seq right))))
+            (nodes->list right))))
 
-(defn add
+(defn insert
   "Inserts value into tree. Returns a new tree with value inserted at the
   correct position according to to-left?. Throws ex-info if value does not
   satisfy the tree's pred."
@@ -55,7 +55,7 @@
   (if (pred value)
     (if (nil? root)
       (assoc tree :root (make-node value))
-      (assoc tree :root (node-add root value to-left?)))
+      (assoc tree :root (insert-node root value to-left?)))
     (throw (ex-info (str value " doesnt satisfy the pred" pred) {:key value}))))
 
 (defn member?
@@ -63,7 +63,7 @@
   Throws ex-info if search-value does not satisfy the tree's pred."
   [{:keys [root to-left? pred]} search-value]
   (if (pred search-value)
-    (node-member? root search-value to-left?)
+    (member-node? root search-value to-left?)
     (throw (ex-info (str search-value " doesnt satisfy the pred" pred) {:key search-value}))))
 
 (defn min-val
@@ -80,18 +80,18 @@
     (:value (max-node root))
     nil))
 
-(defn to-seq
+(defn tree->list
   "Returns a lazy sequence of the tree's values in ascending order (in-order
   traversal). Returns nil if the tree is empty."
   [{:keys [root]}]
-  (node-to-seq root))
+  (nodes->list root))
 
-(defn delete
+(defn remove
   "Removes value from tree. Returns a new tree with value removed. Throws
   ex-info if value does not satisfy the tree's pred."
   [{:keys [to-left? pred root] :as tree} value]
   (if (pred value)
-    (assoc tree :root (node-delete root value to-left?))
+    (assoc tree :root (remove-node root value to-left?))
     (throw (ex-info (str value " doesnt satisfy the pred" pred) {:key value}))))
 
 (defn make-tree
@@ -101,5 +101,5 @@
   ([vals] (make-tree < number? vals))
   ([to-left? pred] {:to-left? to-left? :pred pred :root nil})
   ([to-left? pred vals]
-   (reduce add (make-tree to-left? pred) (seq vals))))
+   (reduce insert (make-tree to-left? pred) (seq vals))))
 

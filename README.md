@@ -17,33 +17,35 @@ The approach is incremental: each data structure builds intuition and vocabulary
 
 ## Binary Search Tree
 
-A BST is a binary tree where every node satisfies the invariant: all values in the left subtree come before the node's value, and all values in the right subtree come after it — as defined by a comparator function `to-left?`.
+A BST is a binary tree where every node satisfies the invariant: all values in the left subtree come before the node's value, and all values in the right subtree come after it, as defined by a comparator function `to-left?`.
 
 The implementation is purely functional: every operation returns a new tree, leaving the original unchanged.
 
 ```clojure
 (require '[clj-data-structures.bst :as bst])
 
+;; How I want to compare which el goes to left and which goes to right?
+;; Default: <
 (def by-length #(< (count %1) (count %2)))
 
-; initialize from a collection
+;; `string` here means: Is the value inserted a value/desired one?
+;; Default: number?
 (def t (bst/make-tree by-length string? ["hi" "hello" "hey" "howdy" "x"]))
 
-; or build incrementally with add
 (def t (-> (bst/make-tree by-length string?)
-           (bst/add "hi")
-           (bst/add "hello")
-           (bst/add "hey")
-           (bst/add "howdy")
-           (bst/add "x")))
+           (bst/insert "hi")
+           (bst/insert "hello")
+           (bst/insert "hey")
+           (bst/insert "howdy")
+           (bst/insert "x")))
 
-(bst/to-seq t)         ;; => ("x" "hi" "hey" "hello" "howdy")
+(bst/tree->list t)     ;; => ("x" "hi" "hey" "hello" "howdy")
 (bst/min-val t)        ;; => "x"
 (bst/max-val t)        ;; => "howdy"
 (bst/member? t "hey")  ;; => true
 (bst/member? t "bye")  ;; => false
 
-(bst/to-seq (bst/delete t "hi"))  ;; => ("x" "hey" "hello" "howdy")
+(bst/tree->list (bst/remove t "hi"))  ;; => ("x" "hey" "hello" "howdy")
 ```
 
 Values are ordered by string length, shorter strings go left.
