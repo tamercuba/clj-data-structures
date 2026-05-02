@@ -24,9 +24,13 @@ The implementation is purely functional: every operation returns a new tree, lea
 ```clojure
 (require '[clj-data-structures.bst :as bst])
 
-(def t (bst/make-tree #(< (count %1) (count %2)) string?))
+(def by-length #(< (count %1) (count %2)))
 
-(def t (-> t
+; initialize from a collection
+(def t (bst/make-tree by-length string? ["hi" "hello" "hey" "howdy" "x"]))
+
+; or build incrementally with add
+(def t (-> (bst/make-tree by-length string?)
            (bst/add "hi")
            (bst/add "hello")
            (bst/add "hey")
@@ -37,6 +41,9 @@ The implementation is purely functional: every operation returns a new tree, lea
 (bst/min-val t)        ;; => "x"
 (bst/max-val t)        ;; => "howdy"
 (bst/member? t "hey")  ;; => true
+(bst/member? t "bye")  ;; => false
+
+(bst/to-seq (bst/delete t "hi"))  ;; => ("x" "hey" "hello" "howdy")
 ```
 
-Values are ordered by string length — shorter strings go left.
+Values are ordered by string length, shorter strings go left.
