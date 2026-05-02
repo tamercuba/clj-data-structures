@@ -1,0 +1,2 @@
+{:source-aliases #{:dev :test}
+ :lint-project-files-after-startup? true}
