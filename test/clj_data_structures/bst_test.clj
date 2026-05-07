@@ -2,9 +2,6 @@
   (:require [clojure.test :refer [deftest testing is are]]
             [clj-data-structures.bst :as bst]))
 
-(defn- build-tree [& values]
-  (reduce bst/insert (bst/make) values))
-
 (deftest make-test
   (testing "empty tree has nil root"
     (is (nil? (:root (bst/make)))))
@@ -42,11 +39,11 @@
       (is (= 5 (get-in t [:root :value])))))
 
   (testing "lesser value goes left"
-    (let [t (build-tree 5 3)]
+    (let [t (bst/make [5 3])]
       (is (= 3 (get-in t [:root :left :value])))))
 
   (testing "greater value goes right"
-    (let [t (build-tree 5 7)]
+    (let [t (bst/make [5 7])]
       (is (= 7 (get-in t [:root :right :value])))))
 
   (testing "insert does not mutate — returns a new tree"
@@ -67,12 +64,12 @@
 
 (deftest member?-test
   (testing "present values are found"
-    (let [t (build-tree 5 3 7 1 4)]
+    (let [t (bst/make [5 3 7 1 4])]
       (are [v] (bst/member? t v)
         5 3 7 1 4)))
 
   (testing "absent values are not found"
-    (let [t (build-tree 5 3 7)]
+    (let [t (bst/make [5 3 7])]
       (are [v] (not (bst/member? t v))
         0 4 6 9)))
 
@@ -81,88 +78,88 @@
 
   (testing "throws when value does not satisfy pred"
     (is (thrown? clojure.lang.ExceptionInfo
-                 (bst/member? (build-tree 5) "x")))))
+                 (bst/member? (bst/make [5]) "x")))))
 
 (deftest remove-test
   (testing "removed value is no longer a member"
-    (let [t (-> (build-tree 5 3 7) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3 7]) (bst/remove 3))]
       (is (false? (bst/member? t 3)))))
 
   (testing "other values survive removal"
-    (let [t (-> (build-tree 5 3 7 1 4) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3 7 1 4]) (bst/remove 3))]
       (are [v] (bst/member? t v)
         5 7 1 4)))
 
   (testing "remove leaf"
-    (let [t (-> (build-tree 5 3) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3]) (bst/remove 3))]
       (is (nil? (get-in t [:root :left])))))
 
   (testing "remove node with one child"
-    (let [t (-> (build-tree 5 3 1) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3 1]) (bst/remove 3))]
       (is (bst/member? t 1))
       (is (false? (bst/member? t 3)))))
 
   (testing "remove node with two children"
-    (let [t (-> (build-tree 5 3 7 1 4) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3 7 1 4]) (bst/remove 3))]
       (is (bst/member? t 4))
       (is (false? (bst/member? t 3)))))
 
   (testing "remove root"
-    (let [t (-> (build-tree 5 3 7) (bst/remove 5))]
+    (let [t (-> (bst/make [5 3 7]) (bst/remove 5))]
       (is (false? (bst/member? t 5)))
       (is (bst/member? t 3))
       (is (bst/member? t 7))))
 
   (testing "returns a tree map, not a bare node"
-    (let [t (-> (build-tree 5 3) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3]) (bst/remove 3))]
       (is (contains? t :root))
       (is (contains? t :pred))
       (is (contains? t :to-left?))))
 
   (testing "throws when value does not satisfy pred"
     (is (thrown? clojure.lang.ExceptionInfo
-                 (bst/remove (build-tree 5) "x")))))
+                 (bst/remove (bst/make [5]) "x")))))
 
 (deftest tree->list-test
   (testing "empty tree returns nil"
     (is (nil? (bst/tree->list (bst/make)))))
 
   (testing "single element"
-    (is (= [5] (bst/tree->list (build-tree 5)))))
+    (is (= [5] (bst/tree->list (bst/make [5])))))
 
   (testing "returns values in ascending order"
-    (is (= [1 3 4 5 7] (bst/tree->list (build-tree 5 3 7 1 4)))))
+    (is (= [1 3 4 5 7] (bst/tree->list (bst/make [5 3 7 1 4])))))
 
   (testing "order is independent of insertion order"
-    (is (= (bst/tree->list (build-tree 5 3 7 1 4))
-           (bst/tree->list (build-tree 1 7 3 4 5)))))
+    (is (= (bst/tree->list (bst/make [5 3 7 1 4]))
+           (bst/tree->list (bst/make [1 7 3 4 5])))))
 
   (testing "in-order after remove is still sorted"
-    (let [t (-> (build-tree 5 3 7 1 4) (bst/remove 3))]
+    (let [t (-> (bst/make [5 3 7 1 4]) (bst/remove 3))]
       (is (= [1 4 5 7] (bst/tree->list t))))))
 
 (deftest min-val-test
   (testing "min of single node is itself"
-    (is (= 5 (bst/min-val (build-tree 5)))))
+    (is (= 5 (bst/min-val (bst/make [5])))))
 
   (testing "min is the leftmost value"
-    (is (= 1 (bst/min-val (build-tree 5 3 7 1 4)))))
+    (is (= 1 (bst/min-val (bst/make [5 3 7 1 4])))))
 
   (testing "nil on empty tree"
     (is (nil? (bst/min-val (bst/make)))))
 
   (testing "min after removing the minimum"
-    (is (= 3 (bst/min-val (-> (build-tree 5 3 7 1) (bst/remove 1)))))))
+    (is (= 3 (bst/min-val (-> (bst/make [5 3 7 1]) (bst/remove 1)))))))
 
 (deftest max-val-test
   (testing "max of single node is itself"
-    (is (= 5 (bst/max-val (build-tree 5)))))
+    (is (= 5 (bst/max-val (bst/make [5])))))
 
   (testing "max is the rightmost value"
-    (is (= 7 (bst/max-val (build-tree 5 3 7 1 4)))))
+    (is (= 7 (bst/max-val (bst/make [5 3 7 1 4])))))
 
   (testing "nil on empty tree"
     (is (nil? (bst/max-val (bst/make)))))
 
   (testing "max after removing the maximum"
-    (is (= 5 (bst/max-val (-> (build-tree 5 3 7) (bst/remove 7)))))))
+    (is (= 5 (bst/max-val (-> (bst/make [5 3 7]) (bst/remove 7)))))))

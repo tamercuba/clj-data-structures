@@ -102,4 +102,3 @@
   ([to-left? pred] {:to-left? to-left? :pred pred :root nil})
   ([to-left? pred vals]
    (reduce insert (make to-left? pred) (seq vals))))
-
