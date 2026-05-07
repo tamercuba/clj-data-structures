@@ -7,7 +7,7 @@ The approach is incremental: each data structure builds intuition and vocabulary
 ## Roadmap
 
 - [x] Binary Search Tree (BST)
-- [ ] AVL Tree
+- [x] AVL Tree
 - [ ] Red-Black Tree
 - [ ] Trie
 - [ ] B-Tree

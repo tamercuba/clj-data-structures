@@ -53,6 +53,10 @@
       (is (nil? (:root t)))
       (is (nil? (get-in t1 [:root :left])))))
 
+  (testing "inserting a duplicate increases size"
+    (let [t (-> (bst/make [5]) (bst/insert 5))]
+      (is (= 2 (bst/size t)))))
+
   (testing "throws when value does not satisfy pred"
     (is (thrown? clojure.lang.ExceptionInfo (bst/insert (bst/make) "a"))))
 
@@ -116,6 +120,11 @@
       (is (contains? t :pred))
       (is (contains? t :to-left?))))
 
+  (testing "remove non-existent value returns unchanged tree"
+    (let [t (bst/make [5 3 7])]
+      (is (= (bst/tree->list t)
+             (bst/tree->list (bst/remove t 99))))))
+
   (testing "throws when value does not satisfy pred"
     (is (thrown? clojure.lang.ExceptionInfo
                  (bst/remove (bst/make [5]) "x")))))
@@ -163,3 +172,21 @@
 
   (testing "max after removing the maximum"
     (is (= 5 (bst/max-val (-> (bst/make [5 3 7]) (bst/remove 7)))))))
+
+(deftest size-test
+  (testing "empty tree has size 0"
+    (is (= 0 (bst/size (bst/make)))))
+
+  (testing "single node has size 1"
+    (is (= 1 (bst/size (bst/make [5])))))
+
+  (testing "size equals number of inserted elements"
+    (is (= 5 (bst/size (bst/make [5 3 7 1 4])))))
+
+  (testing "size decreases by 1 after remove"
+    (let [t (bst/make [5 3 7])]
+      (is (= 2 (bst/size (bst/remove t 3))))))
+
+  (testing "size is 0 after removing all elements"
+    (let [t (-> (bst/make [5]) (bst/remove 5))]
+      (is (= 0 (bst/size t))))))
