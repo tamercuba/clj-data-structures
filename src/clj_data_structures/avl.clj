@@ -15,20 +15,23 @@
            :height (+ 1 (max lh rh))
            :factor (- lh rh))))
 
-(defn- balanced-node? [{:keys [left right factor] :as node}]
-  (if (nil? node)
-    true
-    (and (< -2 factor 2)
-         (balanced-node? left)
-         (balanced-node? right))))
+(defn- -rotate-left [{:keys [right] :as node}]
+  (assoc right :left (assoc node :right (:left right))))
 
-(defn- rotate-left [{:keys [right] :as node}]
-  (let [new-left (update-node (assoc node :right (:left right)))]
-    (update-node (assoc right :left new-left))))
+(defn- rotate-left [node]
+  (-> node
+      -rotate-left
+      (update :left update-node)
+      update-node))
 
-(defn- rotate-right [{:keys [left] :as node}]
-  (let [new-right (update-node (assoc node :left (:right left)))]
-    (update-node (assoc left :right new-right))))
+(defn- -rotate-right [{:keys [left] :as node}]
+  (assoc left :right (assoc node :left (:right left))))
+
+(defn- rotate-right [node]
+  (-> node
+      -rotate-right
+      (update :right update-node)
+      update-node))
 
 (defn- rotate-left-right [{:keys [left] :as node}]
   (-> node
@@ -62,32 +65,25 @@
     0
     (node-height root)))
 
-(defn balanced?
-  "Returns true if every node in tree has a balance factor of at most 1."
-  [{:keys [root]}]
-  (if (nil? root)
-    true
-    (balanced-node? root)))
-
 (defn balance
   "Rebalances tree bottom-up. Can be used to fix a BST that has become skewed."
   [{:keys [root] :as tree}]
   (if (nil? root) tree (assoc tree :root (balance-nodes root))))
 
-(defn insert
+(defn insert!
   "Inserts value into tree and rebalances. Throws ex-info if value does not
   satisfy the tree's pred."
   [tree value]
   (-> tree
-      (bst/insert value)
+      (bst/insert! value)
       balance))
 
-(defn remove
+(defn remove!
   "Removes value from tree and rebalances. Throws ex-info if value does not
   satisfy the tree's pred."
   [tree value]
   (-> tree
-      (bst/remove value)
+      (bst/remove! value)
       balance))
 
 (def member?    bst/member?)
@@ -96,15 +92,15 @@
 (def tree->list bst/tree->list)
 (def size       bst/size)
 
-(defn make
+(defn make!
   "Creates an AVL tree. With no arguments, defaults to < as the ordering
   function and number? as the value predicate. Accepts an optional collection
   of initial values which are inserted and balanced in sequence."
-  ([]                   (make < number? [] default-node-factory))
-  ([vals]               (make < number? vals))
-  ([to-left? pred]      (make to-left? pred [] default-node-factory))
-  ([to-left? pred vals] (make to-left? pred vals default-node-factory))
+  ([]                   (make! < number? [] default-node-factory))
+  ([vals]               (make! < number? vals))
+  ([to-left? pred]      (make! to-left? pred [] default-node-factory))
+  ([to-left? pred vals] (make! to-left? pred vals default-node-factory))
   ([to-left? pred
-    vals node-factory]  (reduce insert
+    vals node-factory]  (reduce insert!
                                 {:to-left? to-left? :pred pred :node-factory node-factory :root nil}
                                 (seq vals))))

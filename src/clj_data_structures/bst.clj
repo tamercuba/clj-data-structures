@@ -56,7 +56,7 @@
             [value]
             (nodes->list right))))
 
-(defn insert
+(defn insert!
   "Inserts value into tree. Returns a new tree with value inserted at the
   correct position according to to-left?. Throws ex-info if value does not
   satisfy the tree's pred."
@@ -96,7 +96,7 @@
   [{:keys [root]}]
   (nodes->list root))
 
-(defn remove
+(defn remove!
   "Removes value from tree. Returns a new tree with value removed. Throws
   ex-info if value does not satisfy the tree's pred."
   [{:keys [to-left? pred root] :as tree} value]
@@ -109,14 +109,14 @@
   [{:keys [root]}]
   (node-size root))
 
-(defn make
+(defn make!
   "Creates an empty BST. With no arguments, defaults to < as the ordering
   function and number? as the value predicate."
-  ([]                   (make < number?))
-  ([vals]               (make < number? vals))
-  ([to-left? pred]      (make to-left? pred [] default-node-factory))
-  ([to-left? pred vals] (make to-left? pred vals default-node-factory))
+  ([]                   (make! < number?))
+  ([vals]               (make! < number? vals))
+  ([to-left? pred]      (make! to-left? pred [] default-node-factory))
+  ([to-left? pred vals] (make! to-left? pred vals default-node-factory))
   ([to-left? pred
-    vals node-factory]  (reduce insert
+    vals node-factory]  (reduce insert!
                                 {:to-left? to-left? :pred pred :node-factory node-factory :root nil}
                                 (seq vals))))
